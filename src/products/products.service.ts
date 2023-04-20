@@ -4,7 +4,8 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
-
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { validate as isUUID } from 'uuid'
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger('ProductsService');
@@ -25,13 +26,29 @@ export class ProductsService {
 
   }
 
-  async findAll() {
-    return await this.productRepository.find()
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto
+    return await this.productRepository.find({
+      take: limit,
+      skip: offset
+    })
   }
 
-  async findOne(id: string) {
-    const product = await this.productRepository.findOneBy({id})
-    if(!product) throw new NotFoundException(`Not found product with ID ${id}`)
+  async findOne(term: string) {
+
+    let product: Product;
+    if (isUUID(term)) {
+      product = await this.productRepository.findOneBy({ id:term })
+    } else {
+      const query = this.productRepository.createQueryBuilder()
+      product = await query.where('slug =:slug OR LOWER(title) LIKE :title', {
+          slug: term.toLowerCase(),
+          title: `%${ term.toLowerCase() }%`
+        })
+        .getOne()
+    }
+
+    if(!product) throw new NotFoundException(`Not found product with term ${term}`)
 
     return product
   }
