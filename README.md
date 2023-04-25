@@ -13,3 +13,9 @@
 # run postgres image docker
 $ docker-compose up -d
 ```
+
+## Seed
+```bash
+# run data seed
+http://localhost:3000/api/v1/seed
+```

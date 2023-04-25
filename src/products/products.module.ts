@@ -11,6 +11,7 @@ import { Product, ProducImage } from './entities';
       Product,
       ProducImage
     ])
-  ]
+  ],
+  exports: [ProductsService]
 })
 export class ProductsModule {}
