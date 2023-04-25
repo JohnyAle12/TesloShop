@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, Logger, 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { validate as isUUID } from 'uuid'
 import { Product, ProducImage } from './entities';
@@ -14,7 +14,8 @@ export class ProductsService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProducImage)
-    private readonly productImageRepository: Repository<ProducImage>
+    private readonly productImageRepository: Repository<ProducImage>,
+    private readonly dataSource: DataSource
   ){}
 
   async create(createProductDto: CreateProductDto) {
@@ -80,17 +81,32 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    const product = await this.productRepository.preload({
-      id,
-      ...updateProductDto,
-      images: []
-    })
+
+    const { images, ...productUpdate } = updateProductDto
+    const product = await this.productRepository.preload({id, ...productUpdate})
 
     if(!product) throw new NotFoundException(`Not found product with id ${id}`)
 
-    await this.productRepository.save(product)
+    const queryRunner = this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
 
-    return product;
+    try {
+      if(images){
+        await queryRunner.manager.delete(ProducImage, { product: { id } })
+        product.images = images.map( image => this.productImageRepository.create({ url: image }))
+      }
+
+      await queryRunner.manager.save(product)
+      // await this.productRepository.save(product)
+
+      await queryRunner.commitTransaction()
+
+      return this.findOnePlane(id);
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      this.handleDBException(error)
+    }
   }
 
   async remove(id: string) {
@@ -105,5 +121,17 @@ export class ProductsService {
 
     this.logger.error(error)
     throw new InternalServerErrorException('Unexpected error, check server logs!!')
+  }
+
+  async deleteAllProducts(){
+    try {
+      const query = this.productImageRepository.createQueryBuilder('product')
+      return await query.delete()
+        .where({})
+        .execute()
+
+    } catch (error) {
+      this.handleDBException(error)
+    }
   }
 }
