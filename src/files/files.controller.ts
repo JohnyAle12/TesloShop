@@ -8,7 +8,9 @@ import { Response } from 'express';
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly filesService: FilesService) {}
+  constructor(
+    private readonly filesService: FilesService
+  ) {}
 
   @Post('product')
   @UseInterceptors(FileInterceptor('file', {
