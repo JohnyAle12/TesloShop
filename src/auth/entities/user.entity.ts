@@ -3,7 +3,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } fr
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn('uuid')
-    id: number
+    id: string
 
     @Column('text')
     name: string
