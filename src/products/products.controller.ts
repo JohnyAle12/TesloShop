@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query, UseGuards, Res, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query, UseGuards, Res, Headers, SetMetadata } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -8,6 +8,7 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { RawHeaders } from 'src/common/decorators/raw-headers.decorator';
 import { IncomingHttpHeaders } from 'http';
+import { UserRoleGuard } from 'src/auth/guards/user-role/user-role.guard';
 
 @Controller('products')
 export class ProductsController {
@@ -39,7 +40,8 @@ export class ProductsController {
   }
 
   @Get('private')
-  @UseGuards(AuthGuard())
+  @SetMetadata('roles', ['admin', 'superuser'])
+  @UseGuards(AuthGuard(), UserRoleGuard)
   privateAccess(
     @GetUser() user: User,
   ) {
