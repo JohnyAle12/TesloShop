@@ -15,7 +15,7 @@ export class SeedService {
     private readonly userRepository: Repository<User>,
   ){}
   async runSeed() {
-    this.deleteAll()
+    await this.deleteAll()
     const user = await this.insertNewUsers()
     await this.insertNewProducts(user)
     return 'Seed executed';
