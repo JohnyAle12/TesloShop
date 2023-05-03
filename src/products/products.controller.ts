@@ -18,8 +18,12 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  @Auth(ValidRoles.user)
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @GetUser() user: User
+  ) {
+    return this.productsService.create(createProductDto, user);
   }
 
   @Get()

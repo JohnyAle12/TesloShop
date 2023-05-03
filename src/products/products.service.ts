@@ -6,6 +6,7 @@ import { DataSource, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { validate as isUUID } from 'uuid'
 import { Product, ProducImage } from './entities';
+import { User } from 'src/auth/entities/user.entity';
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger('ProductsService');
@@ -18,12 +19,13 @@ export class ProductsService {
     private readonly dataSource: DataSource
   ){}
 
-  async create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto, user: User) {
     try {
       const { images = [], ...detailProduct } = createProductDto
       const product = this.productRepository.create({
         ...detailProduct,
-        images: images.map( image => this.productImageRepository.create({ url: image }))
+        images: images.map( image => this.productImageRepository.create({ url: image })),
+        user
       })
       await this.productRepository.save(product)
       
