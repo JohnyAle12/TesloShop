@@ -5,8 +5,10 @@ import { fileFilter } from './helpers/fileFilter.helpers';
 import { diskStorage } from 'multer';
 import { fileNamer } from './helpers/fileNamer.helpers';
 import { Response } from 'express';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @Controller('files')
+@Auth()
 export class FilesController {
   constructor(
     private readonly filesService: FilesService
