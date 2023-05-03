@@ -2,6 +2,7 @@ import { Reflector } from '@nestjs/core';
 import { BadRequestException, CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { User } from 'src/auth/entities/user.entity';
+import { META_ROLES } from 'src/auth/decorators/role-protected.decorator';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -14,7 +15,7 @@ export class UserRoleGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
 
-    const roles: string[] = this.reflector.get('roles', context.getHandler())
+    const roles: string[] = this.reflector.get(META_ROLES, context.getHandler())
 
     if(!roles) return true
 
@@ -28,6 +29,6 @@ export class UserRoleGuard implements CanActivate {
       if(roles.includes(role)) return true
     }
 
-    throw new ForbiddenException(`The user ${user.name} doesn't have a valid role, nedds a admin role`)
+    throw new ForbiddenException(`The user ${user.name} doesn't have a valid role, needs a ${roles.toString()} role`)
   }
 }

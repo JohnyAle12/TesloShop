@@ -9,6 +9,9 @@ import { User } from 'src/auth/entities/user.entity';
 import { RawHeaders } from 'src/common/decorators/raw-headers.decorator';
 import { IncomingHttpHeaders } from 'http';
 import { UserRoleGuard } from 'src/auth/guards/user-role/user-role.guard';
+import { RoleProtected } from 'src/auth/decorators/role-protected.decorator';
+import { ValidRoles } from 'src/auth/interfaces/valid-roles';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -40,9 +43,20 @@ export class ProductsController {
   }
 
   @Get('private')
-  @SetMetadata('roles', ['admin', 'superuser'])
+  // @SetMetadata('roles', ['admin', 'superuser'])
+  @RoleProtected(ValidRoles.superuser, ValidRoles.admin)
   @UseGuards(AuthGuard(), UserRoleGuard)
   privateAccess(
+    @GetUser() user: User,
+  ) {
+    return {
+      user
+    };
+  }
+
+  @Get('private2')
+  @Auth(ValidRoles.superuser)
+  privateAccessTwo(
     @GetUser() user: User,
   ) {
     return {
