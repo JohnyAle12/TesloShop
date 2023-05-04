@@ -12,7 +12,9 @@ import { UserRoleGuard } from 'src/auth/guards/user-role/user-role.guard';
 import { RoleProtected } from 'src/auth/decorators/role-protected.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
