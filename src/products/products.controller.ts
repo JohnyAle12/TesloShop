@@ -12,8 +12,10 @@ import { UserRoleGuard } from 'src/auth/guards/user-role/user-role.guard';
 import { RoleProtected } from 'src/auth/decorators/role-protected.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Product } from './entities';
 
+@ApiBearerAuth('access-token')
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
@@ -21,6 +23,9 @@ export class ProductsController {
 
   @Post()
   @Auth(ValidRoles.user)
+  @ApiResponse({ status: 201, description: 'Product was created', type: Product})
+  @ApiResponse({ status: 400, description: 'Bad information request'})
+  @ApiResponse({ status: 403, description: 'Forbidden token related'})
   create(
     @Body() createProductDto: CreateProductDto,
     @GetUser() user: User
