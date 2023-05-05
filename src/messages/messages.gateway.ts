@@ -9,11 +9,11 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
   ) {}
 
   handleConnection(client: Socket){
-    console.log(client, 'Client connected');
-    
+    this.messagesService.registerClient(client)
+    console.log('clientes conectados', this.messagesService.getConnectedClients());
   }
 
   handleDisconnect(client: Socket){
-    console.log(client, 'Client disconnected');
+    this.messagesService.removeClient(client.id)
   }
 }
