@@ -2,6 +2,8 @@ import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGa
 import { MessagesService } from './messages.service';
 import { Server, Socket } from 'socket.io';
 import { MessageDto } from './dto/message.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/auth/interfaces/jwt.interface';
 
 @WebSocketGateway({ cors: true })
 export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -9,13 +11,29 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
   @WebSocketServer() private wss: Server
 
   constructor(
-    private readonly messagesService: MessagesService
+    private readonly messagesService: MessagesService,
+    private readonly jwtService: JwtService
   ) {}
 
   handleConnection(client: Socket){
+    const token = client.handshake.headers.auth as string
+    let payload: JwtPayload
+
+    try {
+      payload = this.jwtService.verify(token)
+    } catch (error) {
+      client.disconnect()
+      return
+    }
+
     this.messagesService.registerClient(client)
     this.wss.emit('updated-clients', this.messagesService.getConnectedClients())
-    console.log('clientes conectados', this.messagesService.getConnectedClients().length);
+
+    console.log({
+      clients: this.messagesService.getConnectedClients().length,
+      token,
+      payload
+    });
   }
 
   handleDisconnect(client: Socket){
