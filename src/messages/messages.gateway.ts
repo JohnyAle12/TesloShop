@@ -15,18 +15,18 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     private readonly jwtService: JwtService
   ) {}
 
-  handleConnection(client: Socket){
+  async handleConnection(client: Socket){
     const token = client.handshake.headers.auth as string
     let payload: JwtPayload
 
     try {
       payload = this.jwtService.verify(token)
+      await this.messagesService.registerClient(client, payload.id)
     } catch (error) {
       client.disconnect()
       return
     }
 
-    this.messagesService.registerClient(client)
     this.wss.emit('updated-clients', this.messagesService.getConnectedClients())
 
     console.log({
@@ -57,7 +57,7 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     //** All users reieve this message */
     this.wss.emit('messages-list', {
-        name: 'jose lola',
+        name: this.messagesService.getUserNameBySocketId(client.id),
         message: message.message
     })
   }
